@@ -8,7 +8,7 @@ interface BookContextProps {
 
 export const BookContext = createContext({
 	books: [] as BookI[],
-	updateBooks: (updatedBooks: BookI[]) => {
+	refreshBooks: () => {
 	}
 });
 
@@ -16,16 +16,16 @@ export const BookContext = createContext({
 export const BookContextProvider = ({ children }: BookContextProps) => {
 	const [books, setBooks] = useState<BookI[]>([]);
 
-	const updateBooks = (updatedBooks: BookI[]) => setBooks(updatedBooks);
+	const refreshBooks = () => getAll().then(books => setBooks(books));
 
 	useEffect(() => {
-		getAll().then(data => setBooks(data));
+		refreshBooks();
 	}, []);
 
 	return (
 		<BookContext.Provider value={{
 			books: books,
-			updateBooks: updateBooks
+			refreshBooks: refreshBooks
 		}}>
 			{children}
 		</BookContext.Provider>

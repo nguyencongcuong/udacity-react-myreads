@@ -1,24 +1,29 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import HeaderContainer from './HeaderContainer';
-import { BookContext } from '../contexts/BookContext';
 import { BookI } from '../interfaces/BookInterface';
 import Book from '../components/Book';
+import { search } from '../api/BooksAPI';
 
 const SearchContainer = () => {
-	const { books } = useContext(BookContext);
 	const [keywords, setKeywords] = useState<string>('');
-	const [searchedBooks, setSearchedBooks] = useState<BookI[]>(books);
+	const [searchedBooks, setSearchedBooks] = useState<BookI[]>([]);
 
 	// Just a very simple search function
-	const search = (books: BookI[]): void => {
-		const result = books.filter((book) => book.title.includes(keywords) || book.authors.includes(keywords));
-		setSearchedBooks(result);
+	const searchBooks = (): void => {
+		search(keywords).then(res => {
+			if (res.length) {
+				setSearchedBooks(res);
+			} else if (res.error) {
+				setSearchedBooks([]);
+			}
+		});
 	};
 
 	useEffect(() => {
-		search(books);
-		console.log('searching...');
-	}, [keywords, books]);
+		if (keywords) {
+			searchBooks();
+		}
+	}, [keywords]);
 
 	return (
 		<div>
@@ -36,12 +41,14 @@ const SearchContainer = () => {
 				/>
 
 				{/*Search Results*/}
-				<div className="text-2xl font-bold my-8">{keywords ? 'Search Results' : 'All Books'}</div>
+				<div className="text-2xl font-bold my-8">{keywords ? 'Search Results' : ''}</div>
 				<div className="flex flex-wrap gap-8">
 					{
-						(searchedBooks && searchedBooks.length)
-							? searchedBooks.map((book, index) => <Book key={index} book={book}/>)
-							: null
+						searchedBooks.length ? searchedBooks.map((book, index) => <Book key={index} book={book}/>) : null
+					}
+
+					{
+						(!searchedBooks.length && keywords) ? <div>There is no book match with keyword: <em>{keywords}</em></div> : null
 					}
 				</div>
 
